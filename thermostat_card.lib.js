@@ -106,12 +106,19 @@ export default class ThermostatUI {
     const target_index = SvgUtil.restrictToRange(Math.round((this._target - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1);
     const high_index = SvgUtil.restrictToRange(Math.round((this._high - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1);
     const low_index = SvgUtil.restrictToRange(Math.round((this._low - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1);
+    const hvac_action = options.entity.attributes.hvac_action;
 
     this.updatePrefixText(this.entity);
     
     if (!this.dual) {
       tick_label = [{value: this._target, isTarget: true }, {value: this.ambient, isTarget: false}].sort((a, b) => (a.value > b.value) ? 1 : -1)
-      this._updateTemperatureSlot(this.ambient, 8, `temperature_slot_2`);
+
+      let ambientOffset = 8;
+      if(this.ambient < this._target) {
+         ambientOffset = -8;
+      }
+
+      this._updateTemperatureSlot(this.ambient, ambientOffset, `temperature_slot_2`);
       
       switch (this.hvac_state) {
         case 'dry':
@@ -159,51 +166,31 @@ export default class ThermostatUI {
         default:
           this._load_icon('more', 'dots-horizontal');
       }
+      this._updateText('ambient', this._target);
+
     } else {
       tick_label = [{value: this._low, isTarget: true }, {value: this._high, isTarget: true }, {value: this.ambient, isTarget: false }].sort((a, b) => (a.value > b.value) ? 1 : -1)
       this._updateTemperatureSlot(null, 0, `temperature_slot_1`);
       this._updateTemperatureSlot(null, 0, `temperature_slot_2`);
-      this._updateTemperatureSlot(null, 0, `temperature_slot_3`);
 
-      switch (this.hvac_state) {
-        case 'cool':
-          if (high_index < ambient_index) {
-            from = high_index;
-            to = ambient_index;
-            this._updateTemperatureSlot(this.ambient, 8, `temperature_slot_3`);
-            //this._updateTemperatureSlot(this._high, -8, `temperature_slot_2`);
-          }
-          break;
-        case 'heat':
-          if (low_index > ambient_index) {
-            from = ambient_index;
-            to = low_index;
-            this._updateTemperatureSlot(this.ambient, -8, `temperature_slot_1`);
-            //this._updateTemperatureSlot(this._low, 8, `temperature_slot_2`);
-          }
-          break;
-        case 'off':
-          if (high_index < ambient_index) {
-            from = high_index;
-            to = ambient_index;
-            this._updateTemperatureSlot(this.ambient, 8, `temperature_slot_3`);
-            //this._updateTemperatureSlot(this._high, -8, `temperature_slot_2`);
-          }
-          if (low_index > ambient_index) {
-            from = ambient_index;
-            to = low_index;
-            this._updateTemperatureSlot(this.ambient, -8, `temperature_slot_1`);
-            //this._updateTemperatureSlot(this._low, 8, `temperature_slot_2`);
-          }
-          break;
-        default:
+      let ambientOffset = 8;
+      debugger;
+      if(this.ambient >= this._low) {
+         ambientOffset = -8;
       }
+      this._updateTemperatureSlot(this.ambient, ambientOffset, `temperature_slot_3`);
+
+      from = low_index;
+      to = high_index;
+
+      this._updateText('ambient', '');
+      this._updateText('low', this.temperature.low);
+      this._updateText('high', this.temperature.high);
     }
     
     tick_label.forEach(item => tick_indexes.push({value: SvgUtil.restrictToRange(Math.round((item.value - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1), isTarget: item.isTarget}));
     this._updateTicks(from, to, tick_indexes, this.hvac_state);
-    this._updateColor(options.entity.attributes.hvac_action, this.preset_mode);
-    this._updateText('ambient', this._target);
+    this._updateColor(hvac_action, this.preset_mode);
     this._updateEdit(false);
     this._updateDialog(this.hvac_modes, this.hvac_fan_modes, hass);
     this._updateText('prefixText', this.prefixText);
@@ -228,9 +215,6 @@ export default class ThermostatUI {
         case 'fan':
             prefixText = "FAN ON";
             break;
-        case 'auto':
-            prefixText = "AUTO";
-            break;
     }
     this.prefixText = prefixText;
   }
@@ -250,8 +234,8 @@ export default class ThermostatUI {
         case 'fan':
             text = "FAN ON";
             break;
-        case 'auto':
-            text = "AUTO";
+        case 'heat_cool':
+            text = "HEAT COOL"
             break;
     }
     return text;
@@ -341,7 +325,7 @@ export default class ThermostatUI {
     if (this._timeoutHandler) clearTimeout(this._timeoutHandler);
     this._updateEdit(true);
     //this._updateClass('has-thermo', true);
-    this._updateText('target', this.temperature.target);
+    //this._updateText('target', this.temperature.target);
     this._updateText('low', this.temperature.low);
     this._updateText('high', this.temperature.high);
     this._timeoutHandler = setTimeout(() => {
@@ -377,6 +361,13 @@ export default class ThermostatUI {
     if(id =='prefixText'){
       lblTarget[0].textContent = value;
       lblTarget[1].textContent = '';
+      if(value === "HEAT COOL") {
+        lblTarget[0].classList.add("heat_cool");
+      }
+      else {
+        lblTarget[0].classList.remove("heat_cool");
+      }
+      
     }
   }
 

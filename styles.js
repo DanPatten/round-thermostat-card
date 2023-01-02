@@ -245,7 +245,6 @@ export function cssData(user) {
   .dial__lbl--low, .dial__lbl--high {
     font-size: 90px;
     font-weight: bold;
-    visibility: hidden;
   }
   .dial.in_control .dial__lbl--target {
     visibility: visible;
@@ -302,6 +301,11 @@ export function cssData(user) {
   #prefixText {
     font-size: 19px;
   }
+  #prefixText > .heat_cool {
+    word-spacing: 87px;
+  }
+
+
   `
   return css;
   }
