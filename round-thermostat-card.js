@@ -1,7 +1,7 @@
 import {cssData} from './styles.js?v=1.3.0';
 import ThermostatUI from './thermostat_card.lib.js?v=1.3.0';
 console.info("%c Thermostat Card \n%c  Version  1.3.0 ", "color: orange; font-weight: bold; background: black", "color: white; font-weight: bold; background: dimgray");
-class ThermostatCard extends HTMLElement {
+class RoundThermostatCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -139,7 +139,7 @@ class ThermostatCard extends HTMLElement {
     this._config = cardConfig;
   }
 }
-customElements.define('round-thermostat-card', NestThermostatCard);
+customElements.define('round-thermostat-card', RoundThermostatCard);
 
 function deepClone(value) {
   if (!(!!value && typeof value == 'object')) {
