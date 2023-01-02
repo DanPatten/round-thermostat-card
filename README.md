@@ -1,0 +1,1 @@
+# round-thermostat-card
