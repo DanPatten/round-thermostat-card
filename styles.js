@@ -79,7 +79,7 @@ export function cssData(user) {
   }
   .climate_info {
     position: absolute;
-    top: 82%;
+    top: 68%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 14%;

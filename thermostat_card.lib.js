@@ -325,7 +325,10 @@ export default class ThermostatUI {
     if (this._timeoutHandler) clearTimeout(this._timeoutHandler);
     this._updateEdit(true);
     //this._updateClass('has-thermo', true);
-    //this._updateText('target', this.temperature.target);
+    
+    if(!this.dual) {
+      this._updateText('target', this.temperature.target);
+    }
     this._updateText('low', this.temperature.low);
     this._updateText('high', this.temperature.high);
     this._timeoutHandler = setTimeout(() => {
