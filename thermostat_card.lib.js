@@ -8,9 +8,6 @@ export default class ThermostatUI {
   get dual() {
     return this._dual;
   }
-  get in_control() {
-    return this._in_control;
-  }
   get temperature() {
     return {
       low: this._low,
@@ -253,74 +250,72 @@ export default class ThermostatUI {
     const config = this._config;
     let chevron;
     this._root.querySelectorAll('path.dial__chevron').forEach(el => SvgUtil.setClass(el, 'pressed', false));
-    if (this.in_control) {
-      if (this.dual) {
-        switch (index) {
-          case 0:
-            // clicked top left 
-            chevron = this._root.querySelectorAll('path.dial__chevron--low')[1];
-            this._low = this._low + config.step;
-            if ((this._low + config.idle_zone) >= this._high) this._low = this._high - config.idle_zone;
-            break;
-          case 1:
-            // clicked top right
-            chevron = this._root.querySelectorAll('path.dial__chevron--high')[1];
-            this._high = this._high + config.step;
-            if (this._high > this.max_value) this._high = this.max_value;
-            break;
-          case 2:
-            // clicked bottom right
-            chevron = this._root.querySelectorAll('path.dial__chevron--high')[0];
-            this._high = this._high - config.step;
-            if ((this._high - config.idle_zone) <= this._low) this._high = this._low + config.idle_zone;
-            break;
-          case 3:
-            // clicked bottom left
-            chevron = this._root.querySelectorAll('path.dial__chevron--low')[0];
-            this._low = this._low - config.step;
-            if (this._low < this.min_value) this._low = this.min_value;
-            break;
-        }
-        SvgUtil.setClass(chevron, 'pressed', true);
-        setTimeout(() => SvgUtil.setClass(chevron, 'pressed', false), 200);
-        if (config.highlight_tap)
-          SvgUtil.setClass(this._controls[index], 'control-visible', true);
+
+    if (this.dual) {
+      switch (index) {
+        case 0:
+          // clicked top left 
+          chevron = this._root.querySelectorAll('path.dial__chevron--low')[1];
+          this._low = this._low + config.step;
+          if ((this._low + config.idle_zone) >= this._high) this._low = this._high - config.idle_zone;
+          break;
+        case 1:
+          // clicked top right
+          chevron = this._root.querySelectorAll('path.dial__chevron--high')[1];
+          this._high = this._high + config.step;
+          if (this._high > this.max_value) this._high = this.max_value;
+          break;
+        case 2:
+          // clicked bottom right
+          chevron = this._root.querySelectorAll('path.dial__chevron--high')[0];
+          this._high = this._high - config.step;
+          if ((this._high - config.idle_zone) <= this._low) this._high = this._low + config.idle_zone;
+          break;
+        case 3:
+          // clicked bottom left
+          chevron = this._root.querySelectorAll('path.dial__chevron--low')[0];
+          this._low = this._low - config.step;
+          if (this._low < this.min_value) this._low = this.min_value;
+          break;
       }
-      else {
-        debugger;
-        if (index === 2) {
-          // clicked top
-          chevron = this._root.querySelectorAll('path.dial__chevron--target')[1];
-          this._target = this._target + config.step;
-          if (this._target > this.max_value) this._target = this.max_value;
-          if (config.highlight_tap) {
-            SvgUtil.setClass(this._controls[0], 'control-visible', true);
-            SvgUtil.setClass(this._controls[1], 'control-visible', true);
-          }
-        } else if(index === 3) {
-          // clicked bottom
-          chevron = this._root.querySelectorAll('path.dial__chevron--target')[0];
-          this._target = this._target - config.step;
-          if (this._target < this.min_value) this._target = this.min_value;
-          if (config.highlight_tap) {
-            SvgUtil.setClass(this._controls[2], 'control-visible', true);
-            SvgUtil.setClass(this._controls[3], 'control-visible', true);
-          }
-        }
-        SvgUtil.setClass(chevron, 'pressed', true);
-        setTimeout(() => SvgUtil.setClass(chevron, 'pressed', false), 200);
-      }
-      if (config.highlight_tap) {
-        setTimeout(() => {
-          SvgUtil.setClass(this._controls[0], 'control-visible', false);
-          SvgUtil.setClass(this._controls[1], 'control-visible', false);
-          SvgUtil.setClass(this._controls[2], 'control-visible', false);
-          SvgUtil.setClass(this._controls[3], 'control-visible', false);
-        }, 200);
-      }
-    } else {
-      this._enableControls();
+      SvgUtil.setClass(chevron, 'pressed', true);
+      setTimeout(() => SvgUtil.setClass(chevron, 'pressed', false), 200);
+      if (config.highlight_tap)
+        SvgUtil.setClass(this._controls[index], 'control-visible', true);
     }
+    else {
+      if (index === 2) {
+        // clicked top
+        chevron = this._root.querySelectorAll('path.dial__chevron--target')[1];
+        this._target = this._target + config.step;
+        if (this._target > this.max_value) this._target = this.max_value;
+        if (config.highlight_tap) {
+          SvgUtil.setClass(this._controls[0], 'control-visible', true);
+          SvgUtil.setClass(this._controls[1], 'control-visible', true);
+        }
+      } else if(index === 3) {
+        // clicked bottom
+        chevron = this._root.querySelectorAll('path.dial__chevron--target')[0];
+        this._target = this._target - config.step;
+        if (this._target < this.min_value) this._target = this.min_value;
+        if (config.highlight_tap) {
+          SvgUtil.setClass(this._controls[2], 'control-visible', true);
+          SvgUtil.setClass(this._controls[3], 'control-visible', true);
+        }
+      }
+      SvgUtil.setClass(chevron, 'pressed', true);
+      setTimeout(() => SvgUtil.setClass(chevron, 'pressed', false), 200);
+    }
+    if (config.highlight_tap) {
+      setTimeout(() => {
+        SvgUtil.setClass(this._controls[0], 'control-visible', false);
+        SvgUtil.setClass(this._controls[1], 'control-visible', false);
+        SvgUtil.setClass(this._controls[2], 'control-visible', false);
+        SvgUtil.setClass(this._controls[3], 'control-visible', false);
+      }, 200);
+    }
+    this._updateText('ambient', this._target);
+    this._enableControls();
   }
 
   _updateEdit(show_edit) {
@@ -329,8 +324,8 @@ export default class ThermostatUI {
 
   _enableControls() {
     const config = this._config;
-    this._in_control = true;
-    this._updateClass('in_control', this.in_control);
+    //this._in_control = true;
+    //this._updateClass('in_control', this.in_control);
     if (this._timeoutHandler) clearTimeout(this._timeoutHandler);
     this._updateEdit(true);
     //this._updateClass('has-thermo', true);
@@ -344,8 +339,8 @@ export default class ThermostatUI {
       this._updateText('ambient', this._target);
       this._updateEdit(false);
       //this._updateClass('has-thermo', false);
-      this._in_control = false;
-      this._updateClass('in_control', this.in_control);
+      //this._in_control = false;
+      //this._updateClass('in_control', this.in_control);
       config.control();
     }, config.pending * 1000);
   }
@@ -366,9 +361,9 @@ export default class ThermostatUI {
       }
     }
     
-    if (this.in_control && id == 'target' && this.dual) {
-      lblTarget[0].textContent = '·';
-    }
+    // if (this.in_control && id == 'target' && this.dual) {
+    //   lblTarget[0].textContent = '·';
+    // }
 
     if(id =='prefixText'){
       lblTarget[0].textContent = value;

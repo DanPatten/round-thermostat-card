@@ -274,7 +274,6 @@ export function cssData(user) {
     visibility: hidden;
   }
   .dial .dial__chevron {
-    visibility: hidden;
     fill: none;
     stroke: var(--thermostat-text-color);
     stroke-width: 4px;
