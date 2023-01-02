@@ -146,6 +146,17 @@ export default class ThermostatUI {
             to = ambient_index;
           }
           break;
+        case 'auto':
+            this._load_icon(this.hvac_state, 'atom');
+            if (target_index > ambient_index) {
+              from = ambient_index;
+              to = target_index;
+            }
+            else if (target_index < ambient_index) {
+              from = ambient_index;
+              to = target_index;
+            }
+            break;
         case 'heat_cool':
           this._load_icon(this.hvac_state, 'sun-snowflake-variant');
           if (target_index > ambient_index) {
@@ -153,8 +164,8 @@ export default class ThermostatUI {
             to = target_index;
           }
           else if (target_index < ambient_index) {
-            from = target_index;
-            to = ambient_index;
+            from = ambient_index;
+            to = target_index;
           }
           break;
         case 'off':
@@ -448,7 +459,7 @@ export default class ThermostatUI {
       const theta = config.tick_degrees / config.num_ticks;
       let points = tickPoints;
       if(isPoint) {
-          if(isTarget) {
+          if(isTarget || from === to) {
             points = tickPointsTarget
           }
           else {
