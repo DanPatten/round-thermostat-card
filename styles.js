@@ -151,6 +151,9 @@ export function cssData(user) {
     visibility: hidden;
   }
   
+  .hidden {
+    visibility: hidden;
+  }
   
   
   .dial {

@@ -45,7 +45,7 @@ export default class ThermostatUI {
     this._container.appendChild(this._ic)
 
     this._ic.addEventListener('click', () => this.openProp());
-    this._container.appendChild(this._load_icon('',''));
+    this._container.appendChild(this._load_icon('','', true));
     this.c_body = document.createElement('div');
     this.c_body.className = 'c_body';
     const root = this._buildCore(config.diameter);
@@ -62,12 +62,12 @@ export default class ThermostatUI {
     root.appendChild(this._buildText(config.radius, 'target', 0));
     root.appendChild(this._buildText(config.radius, 'low', -config.radius / 2.5));
     root.appendChild(this._buildText(config.radius, 'high', config.radius / 3));
-    root.appendChild(this._buildChevrons(config.radius, 0, 'low', 0.7, -config.radius / 2.5));
-    root.appendChild(this._buildChevrons(config.radius, 0, 'high', 0.7, config.radius / 3));
-    root.appendChild(this._buildChevrons(config.radius, 0, 'target', 1, 0));
-    root.appendChild(this._buildChevrons(config.radius, 180, 'low', 0.7, -config.radius / 2.5));
-    root.appendChild(this._buildChevrons(config.radius, 180, 'high', 0.7, config.radius / 3));
-    root.appendChild(this._buildChevrons(config.radius, 180, 'target', 1, 0));
+    root.appendChild(this._buildChevrons(config.radius, 0, 'low', 0.7, -config.radius / 2.5), 70);
+    root.appendChild(this._buildChevrons(config.radius, 0, 'high', 0.7, config.radius / 3), 70);
+    root.appendChild(this._buildChevrons(config.radius, 0, 'target', 1, -45, 138)); // down arrow
+    root.appendChild(this._buildChevrons(config.radius, 180, 'target', 1, 50, -150)); //up arrow
+    root.appendChild(this._buildChevrons(config.radius, 180, 'low', 0.7, -config.radius / 2.5), 70);
+    root.appendChild(this._buildChevrons(config.radius, 180, 'high', 0.7, config.radius / 3), 70);
     
 
     this.c_body.appendChild(root);
@@ -174,7 +174,7 @@ export default class ThermostatUI {
       this._updateTemperatureSlot(null, 0, `temperature_slot_2`);
 
       let ambientOffset = 8;
-      debugger;
+
       if(this.ambient >= this._low) {
          ambientOffset = -8;
       }
@@ -186,6 +186,11 @@ export default class ThermostatUI {
       this._updateText('ambient', '');
       this._updateText('low', this.temperature.low);
       this._updateText('high', this.temperature.high);
+    }
+
+    // if only supports 1 mode then don't show icon
+    if(this.hvac_modes.length < 2) {
+      this._load_icon('', '', true);
     }
     
     tick_label.forEach(item => tick_indexes.push({value: SvgUtil.restrictToRange(Math.round((item.value - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1), isTarget: item.isTarget}));
@@ -227,6 +232,9 @@ export default class ThermostatUI {
             break;
         case 'cool':
             text = "COOL SET TO";
+            break;
+        case 'auto':
+            text = "TEMP SET TO";
             break;
         case 'off':
             text = "OFF";
@@ -279,7 +287,8 @@ export default class ThermostatUI {
           SvgUtil.setClass(this._controls[index], 'control-visible', true);
       }
       else {
-        if (index < 2) {
+        debugger;
+        if (index === 2) {
           // clicked top
           chevron = this._root.querySelectorAll('path.dial__chevron--target')[1];
           this._target = this._target + config.step;
@@ -288,7 +297,7 @@ export default class ThermostatUI {
             SvgUtil.setClass(this._controls[0], 'control-visible', true);
             SvgUtil.setClass(this._controls[1], 'control-visible', true);
           }
-        } else {
+        } else if(index === 3) {
           // clicked bottom
           chevron = this._root.querySelectorAll('path.dial__chevron--target')[0];
           this._target = this._target - config.step;
@@ -399,7 +408,9 @@ export default class ThermostatUI {
         if (c.indexOf('dial--state--') != -1)
           this._root.classList.remove(c);
       });
-      this._root.classList.add('dial--state--' + state);
+      if(state !== 'idle') {
+        this._root.classList.add('dial--state--' + state);
+      }
     }
   }
 
@@ -524,15 +535,15 @@ export default class ThermostatUI {
     }, 1);
     e.stopPropagation();
   }
-  _load_icon(state, ic_name){
-    
+  _load_icon(state, ic_name, hidden){
+    const hiddenClass = hidden ? ' hidden': '';
     let ic_dot = 'dot_r'
     if(ic_name == ''){
       ic_dot = 'dot_h'
     }
     
     this._main_icon.innerHTML = `
-      <div class="climate_info">
+      <div class="climate_info${hiddenClass}">
         <div class="mode_color"><span class="${ic_dot}"></span></div>
         <div class="modes"><ha-icon class="${state}" icon="mdi:${ic_name}"></ha-icon></div>
       </div>
@@ -572,12 +583,12 @@ export default class ThermostatUI {
     return tick_element;
   }
   
-  _buildChevrons(radius, rotation, id, scale, offset) {
+  _buildChevrons(radius, rotation, id, scale, offset, radiusOffset) {
     const config = this._config;
     const translation = rotation > 0 ? -1 : 1;
     const width = config.chevron_size;
     const chevron_def = ["M", 0, 0, "L", width / 2, width * 0.3, "L", width, 0].map((x) => isNaN(x) ? x : x * scale).join(' ');
-    const translate = [radius - width / 2 * scale * translation + offset, radius + 70 * scale * 1.1 * translation];
+    const translate = [radius - width / 2 * scale * translation + offset, radius + radiusOffset * scale * 1.1 * translation];
     const chevron = SvgUtil.createSVGElement('path', {
       class: `dial__chevron dial__chevron--${id}`,
       d: chevron_def,
@@ -585,6 +596,7 @@ export default class ThermostatUI {
     });
     return chevron;
   }
+
 
   _buildThermoIcon(radius) {
     const thermoScale = radius / 3 / 100;
@@ -628,6 +640,7 @@ export default class ThermostatUI {
   _buildControls(radius) {
     let startAngle = 270;
     let loop = 4;
+
     for (let index = 0; index < loop; index++) {
       const angle = 360 / loop;
       const sector = SvgUtil.anglesToSectors(radius, startAngle, angle);
