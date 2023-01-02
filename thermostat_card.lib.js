@@ -202,7 +202,7 @@ export default class ThermostatUI {
     
     tick_label.forEach(item => tick_indexes.push({value: SvgUtil.restrictToRange(Math.round((item.value - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1), isTarget: item.isTarget}));
     this._updateTicks(from, to, tick_indexes, this.hvac_state);
-    // this._updateColor(this.hvac_state, this.preset_mode);
+    this._updateColor(options.entity.attributes.hvac_action, this.preset_mode);
     this._updateText('ambient', this._target);
     this._updateEdit(false);
     this._updateDialog(this.hvac_modes, this.hvac_fan_modes, hass);
@@ -397,7 +397,6 @@ export default class ThermostatUI {
   }
 
   _updateColor(state, preset_mode) {
-    
     if(Object.prototype.toString.call(preset_mode) === "[object String]"){
 
       if(state != 'off' && preset_mode.toLowerCase() == 'idle')

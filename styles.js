@@ -142,10 +142,10 @@ export function cssData(user) {
   .dot_r{
     height: 100%;
     width: 100%;
-    background-color: white;
+    background-color: black;
     border-radius: 50%;
     display: inline-block;
-    opacity: 0.1;
+    opacity: 0.8;
   }
   .dot_h{
     visibility: hidden;
@@ -202,10 +202,10 @@ export function cssData(user) {
   .dial--state--off .dial__shape {
     fill: var(--thermostat-off-fill);
   }
-  .dial--state--heat .dial__shape {
+  .dial--state--heating .dial__shape {
     fill: var(--heat_colorc);
   }
-  .dial--state--cool .dial__shape {
+  .dial--state--cooling .dial__shape {
     fill: var(--cool_colorc);
   }
   .dial--state--auto .dial__shape {
@@ -214,12 +214,10 @@ export function cssData(user) {
   .dial--state--fan_only .dial__shape {
     fill: var(--fan_only_color);
   }
-  .dial--state--dry .dial__shape {
+  .dial--state--drying .dial__shape {
     fill: var(--dry_color);
   }
-  .dial--state--idle .dial__shape {
-    fill: var(--idle_color);
-  }
+
   .dial__ticks path {
     fill: var(--thermostat-path-color);
   }
