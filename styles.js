@@ -4,7 +4,7 @@ export function cssData(user) {
   ha-card {
     overflow: hidden;
     --rail_border_color: transparent;
-    --auto_color: green;
+    --auto_color: springgreen;
     --cool_color: rgba(0, 122, 241, 0.6);
     --cool_colorc: rgba(0, 122, 241, 1);
     --heat_color: #ff8100;
@@ -145,14 +145,13 @@ export function cssData(user) {
     background-color: black;
     border-radius: 50%;
     display: inline-block;
-    opacity: 0.8;
+    opacity: 0.6;
   }
   .dot_h{
     visibility: hidden;
   }
-  
   .hidden {
-    visibility: hidden;
+    display: none;
   }
   
   
@@ -263,14 +262,20 @@ export function cssData(user) {
     font-weight: bold;
     visibility: visible;
   }
-  .dial.in_control.has_dual .dial__chevron--low,
-  .dial.in_control.has_dual .dial__chevron--high {
+
+  .dial__chevron.dial__chevron--low,
+  .dial__chevron.dial__chevron--high {
+    visibility: hidden;
+  }
+  .has_dual > .dial__chevron.dial__chevron--low,
+  .has_dual > .dial__chevron.dial__chevron--high {
     visibility: visible;
   }
+
   .dial.in_control .dial__chevron--target {
     visibility: visible;
   }
-  .dial.in_control.has_dual .dial__chevron--target {
+  .has_dual > .dial__chevron.dial__chevron--target {
     visibility: hidden;
   }
   .dial .dial__chevron {

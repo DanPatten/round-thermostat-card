@@ -59,12 +59,12 @@ export default class ThermostatUI {
     root.appendChild(this._buildText(config.radius, 'target', 0));
     root.appendChild(this._buildText(config.radius, 'low', -config.radius / 2.5));
     root.appendChild(this._buildText(config.radius, 'high', config.radius / 3));
-    root.appendChild(this._buildChevrons(config.radius, 0, 'low', 0.7, -config.radius / 2.5), 70);
-    root.appendChild(this._buildChevrons(config.radius, 0, 'high', 0.7, config.radius / 3), 70);
+    root.appendChild(this._buildChevrons(config.radius, 0, 'low', 0.7, -config.radius / 2.5, 70));
+    root.appendChild(this._buildChevrons(config.radius, 0, 'high', 0.7, config.radius / 3, 70));
     root.appendChild(this._buildChevrons(config.radius, 0, 'target', 1, -45, 138)); // down arrow
     root.appendChild(this._buildChevrons(config.radius, 180, 'target', 1, 50, -150)); //up arrow
-    root.appendChild(this._buildChevrons(config.radius, 180, 'low', 0.7, -config.radius / 2.5), 70);
-    root.appendChild(this._buildChevrons(config.radius, 180, 'high', 0.7, config.radius / 3), 70);
+    root.appendChild(this._buildChevrons(config.radius, 180, 'low', 0.7, -config.radius / 2.5, 70));
+    root.appendChild(this._buildChevrons(config.radius, 180, 'high', 0.7, config.radius / 3, 70));
     
 
     this.c_body.appendChild(root);
@@ -158,7 +158,7 @@ export default class ThermostatUI {
             }
             break;
         case 'heat_cool':
-          this._load_icon(this.hvac_state, 'sun-snowflake-variant');
+          this._load_icon(this.hvac_state, 'rotate-3d-variant');
           if (target_index > ambient_index) {
             from = ambient_index;
             to = target_index;
@@ -177,6 +177,7 @@ export default class ThermostatUI {
       this._updateText('ambient', this._target);
 
     } else {
+      this._load_icon(this.hvac_state, 'rotate-3d-variant');
       tick_label = [{value: this._low, isTarget: true }, {value: this._high, isTarget: true }, {value: this.ambient, isTarget: false }].sort((a, b) => (a.value > b.value) ? 1 : -1)
       this._updateTemperatureSlot(null, 0, `temperature_slot_1`);
       this._updateTemperatureSlot(null, 0, `temperature_slot_2`);
@@ -489,7 +490,7 @@ export default class ThermostatUI {
           icon = 'fire';
           break;
         case 'heat_cool':
-          icon = 'sun-snowflake-variant';
+          icon = 'rotate-3d-variant';
           break;
         case 'off':
           icon = 'power';
