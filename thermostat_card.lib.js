@@ -97,6 +97,14 @@ export default class ThermostatUI {
       target: options.target_temperature,
       ambient: options.ambient_temperature,
     }
+
+    // Update dual mode
+    this.clearTempSlots();
+    this._updateText('ambient', '');
+    this._updateText('low', '');
+    this._updateText('high', '');
+    this.dual = this._low && this._high;
+
     
     this._updateClass('has_dual', this.dual);
     let tick_label, from, to;
@@ -118,7 +126,7 @@ export default class ThermostatUI {
          ambientOffset = -8;
       }
 
-      this._updateTemperatureSlot(this.ambient, ambientOffset, `temperature_slot_2`);
+      this._updateTemperatureSlot(this.ambient, ambientOffset, `temperature_slot_2`, true);
       
       switch (this.hvac_state) {
         case 'dry':
@@ -182,15 +190,14 @@ export default class ThermostatUI {
     } else {
       this._load_icon(this.hvac_state, 'rotate-3d-variant');
       tick_label = [{value: this._low, isTarget: true }, {value: this._high, isTarget: true }, {value: this.ambient, isTarget: false }].sort((a, b) => (a.value > b.value) ? 1 : -1)
-      this._updateTemperatureSlot(null, 0, `temperature_slot_1`);
-      this._updateTemperatureSlot(null, 0, `temperature_slot_2`);
+      this.clearTempSlots();
 
       let ambientOffset = 8;
-
-      if(this.ambient >= this._low) {
+       
+      if(this.ambient <= this._low) {
          ambientOffset = -8;
       }
-      this._updateTemperatureSlot(this.ambient, ambientOffset, `temperature_slot_3`);
+      this._updateTemperatureSlot(this.ambient, ambientOffset, `temperature_slot_3`, true);
       from = low_index;
       to = high_index;
 
@@ -209,6 +216,12 @@ export default class ThermostatUI {
     this._updateEdit(false);
     this._updateDialog(this.hvac_modes, this.hvac_fan_modes, hass);
     this._updateText('prefixText', this.prefixText);
+  }
+
+  clearTempSlots() {
+    this._updateTemperatureSlot(null, 0, `temperature_slot_1`);
+    this._updateTemperatureSlot(null, 0, `temperature_slot_2`);
+    this._updateTemperatureSlot(null, 0, `temperature_slot_3`);
   }
 
   updatePrefixText(entity) {
@@ -364,15 +377,20 @@ export default class ThermostatUI {
   }
 
   _updateText(id, value) {
+
     const lblTarget = this._root.querySelector(`#${id}`).querySelectorAll('tspan');
     const text = Math.floor(value);
     if (value) {
       lblTarget[0].textContent = text;
-      if (value % 1 != 0) {
+      if (value && value % 1 != 0) {
         lblTarget[1].textContent = Math.round(value % 1 * 10);
       } else {
         lblTarget[1].textContent = '';
       }
+    }
+    else {
+      lblTarget[0].textContent = '';
+      lblTarget[1].textContent = '';
     }
     
     if (this.in_control && id == 'target' && this.dual) {
@@ -392,10 +410,16 @@ export default class ThermostatUI {
     }
   }
 
-  _updateTemperatureSlot(value, offset, slot) {
+  _updateTemperatureSlot(value, offset, slot, isAmbient) {
     
     const config = this._config;
     const lblSlot1 = this._root.querySelector(`#${slot}`)
+    let tempClass = 'dial__lbl dial__lbl--ring';
+
+    if(isAmbient) {
+      tempClass += " ambient";
+    }
+
     lblSlot1.textContent = value != null ? SvgUtil.superscript(value) : '';
     
     const peggedValue = SvgUtil.restrictToRange(value, this.min_value, this.max_value);
@@ -404,7 +428,8 @@ export default class ThermostatUI {
     const pos = SvgUtil.rotatePoint(position, degs, [config.radius, config.radius]);
     SvgUtil.attributes(lblSlot1, {
       x: pos[0],
-      y: pos[1]
+      y: pos[1],
+      class: tempClass
     });
   }
 
@@ -453,7 +478,6 @@ export default class ThermostatUI {
       const matchingTick = large_ticks.find(i => index === i.value);
 
       if(matchingTick) {
-        debugger;
           isPoint = true;
           isTarget = matchingTick.isTarget;
       }
@@ -463,7 +487,6 @@ export default class ThermostatUI {
       const theta = config.tick_degrees / config.num_ticks;
       let points = tickPoints;
       if(isPoint) {
-        debugger;
           if(isTarget || from === to || (this.dual && (from == ambient || to === ambient))) {
             points = tickPointsTarget
           }

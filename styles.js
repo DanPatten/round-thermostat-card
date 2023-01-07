@@ -268,12 +268,8 @@ export function cssData(user) {
     visibility: visible;
   }
 
-  .dial__chevron.dial__chevron--low,
-  .dial__chevron.dial__chevron--high {
-    visibility: hidden;
-  }
-  .has_dual > .dial__chevron.dial__chevron--low,
-  .has_dual > .dial__chevron.dial__chevron--high {
+  .dial.in_control.has_dual .dial__chevron--low,
+  .dial.in_control.has_dual .dial__chevron--high {
     visibility: visible;
   }
 
@@ -311,6 +307,11 @@ export function cssData(user) {
   .dial__lbl--title {
     font-size: 24px;
   }
+
+  .dial__lbl.dial__lbl--ring.ambient {
+    fill: var(--ambient-tick);
+  }
+
   #prefixText {
     font-size: 19px;
   }
