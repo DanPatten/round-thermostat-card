@@ -17,7 +17,7 @@ export function cssData(user) {
     --unknown_color: #bac;
     --text-color: white;
     --active-tick: white;
-    --ambient-tick: darkgray;
+    --ambient-tick: lightgray;
   }
   ha-card.no_card{
     background-color: transparent;
