@@ -17,6 +17,7 @@ export function cssData(user) {
     --unknown_color: #bac;
     --text-color: white;
     --active-tick: white;
+    --ambient-tick: darkgray;
   }
   ha-card.no_card{
     background-color: transparent;
@@ -79,7 +80,7 @@ export function cssData(user) {
   }
   .climate_info {
     position: absolute;
-    top: 68%;
+    top: 82%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 14%;
@@ -232,6 +233,10 @@ export function cssData(user) {
   .dial__ticks path.large {
     fill: var(--active-tick);
   }
+  .dial__ticks path.active.large.ambient, path.large.ambient {
+    fill: var(--ambient-tick);
+  }
+  
   .dial text, .dial text tspan {
     fill: var(--thermostat-text-color);
     text-anchor: middle;
@@ -279,6 +284,7 @@ export function cssData(user) {
     visibility: hidden;
   }
   .dial .dial__chevron {
+    visibility: hidden;
     fill: none;
     stroke: var(--thermostat-text-color);
     stroke-width: 4px;

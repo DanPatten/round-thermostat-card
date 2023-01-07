@@ -8,6 +8,9 @@ export default class ThermostatUI {
   get dual() {
     return this._dual;
   }
+  get in_control() {
+    return this._in_control;
+  }
   get temperature() {
     return {
       low: this._low,
@@ -59,12 +62,12 @@ export default class ThermostatUI {
     root.appendChild(this._buildText(config.radius, 'target', 0));
     root.appendChild(this._buildText(config.radius, 'low', -config.radius / 2.5));
     root.appendChild(this._buildText(config.radius, 'high', config.radius / 3));
-    root.appendChild(this._buildChevrons(config.radius, 0, 'low', 0.7, -config.radius / 2.5, 70));
-    root.appendChild(this._buildChevrons(config.radius, 0, 'high', 0.7, config.radius / 3, 70));
-    root.appendChild(this._buildChevrons(config.radius, 0, 'target', 1, -45, 138)); // down arrow
-    root.appendChild(this._buildChevrons(config.radius, 180, 'target', 1, 50, -150)); //up arrow
-    root.appendChild(this._buildChevrons(config.radius, 180, 'low', 0.7, -config.radius / 2.5, 70));
-    root.appendChild(this._buildChevrons(config.radius, 180, 'high', 0.7, config.radius / 3, 70));
+    root.appendChild(this._buildChevrons(config.radius, 0, 'low', 0.6, -config.radius / 2.5));
+    root.appendChild(this._buildChevrons(config.radius, 0, 'high', 0.6, config.radius / 3));
+    root.appendChild(this._buildChevrons(config.radius, 0, 'target', 1, 0));
+    root.appendChild(this._buildChevrons(config.radius, 180, 'low', 0.6, -config.radius / 2.5));
+    root.appendChild(this._buildChevrons(config.radius, 180, 'high', 0.6, config.radius / 3));
+    root.appendChild(this._buildChevrons(config.radius, 180, 'target', 1, 0));
     
 
     this.c_body.appendChild(root);
@@ -79,7 +82,6 @@ export default class ThermostatUI {
   }
 
   updateState(options,hass) {
-    console.log(options);
     const config = this._config;
     const away = options.away || false;
     this.entity = options.entity;
@@ -103,6 +105,7 @@ export default class ThermostatUI {
     const target_index = SvgUtil.restrictToRange(Math.round((this._target - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1);
     const high_index = SvgUtil.restrictToRange(Math.round((this._high - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1);
     const low_index = SvgUtil.restrictToRange(Math.round((this._low - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1);
+
     const hvac_action = options.entity.attributes.hvac_action;
 
     this.updatePrefixText(this.entity);
@@ -188,7 +191,6 @@ export default class ThermostatUI {
          ambientOffset = -8;
       }
       this._updateTemperatureSlot(this.ambient, ambientOffset, `temperature_slot_3`);
-
       from = low_index;
       to = high_index;
 
@@ -201,9 +203,8 @@ export default class ThermostatUI {
     if(this.hvac_modes.length < 2) {
       this._load_icon('', '', true);
     }
-    
     tick_label.forEach(item => tick_indexes.push({value: SvgUtil.restrictToRange(Math.round((item.value - this.min_value) / (this.max_value - this.min_value) * config.num_ticks), 0, config.num_ticks - 1), isTarget: item.isTarget}));
-    this._updateTicks(from, to, tick_indexes, this.hvac_state);
+    this._updateTicks(from, to, tick_indexes, ambient_index);
     this._updateColor(hvac_action, this.preset_mode);
     this._updateEdit(false);
     this._updateDialog(this.hvac_modes, this.hvac_fan_modes, hass);
@@ -262,72 +263,73 @@ export default class ThermostatUI {
     const config = this._config;
     let chevron;
     this._root.querySelectorAll('path.dial__chevron').forEach(el => SvgUtil.setClass(el, 'pressed', false));
-
-    if (this.dual) {
-      switch (index) {
-        case 0:
-          // clicked top left 
-          chevron = this._root.querySelectorAll('path.dial__chevron--low')[1];
-          this._low = this._low + config.step;
-          if ((this._low + config.idle_zone) >= this._high) this._low = this._high - config.idle_zone;
-          break;
-        case 1:
-          // clicked top right
-          chevron = this._root.querySelectorAll('path.dial__chevron--high')[1];
-          this._high = this._high + config.step;
-          if (this._high > this.max_value) this._high = this.max_value;
-          break;
-        case 2:
-          // clicked bottom right
-          chevron = this._root.querySelectorAll('path.dial__chevron--high')[0];
-          this._high = this._high - config.step;
-          if ((this._high - config.idle_zone) <= this._low) this._high = this._low + config.idle_zone;
-          break;
-        case 3:
-          // clicked bottom left
-          chevron = this._root.querySelectorAll('path.dial__chevron--low')[0];
-          this._low = this._low - config.step;
-          if (this._low < this.min_value) this._low = this.min_value;
-          break;
-      }
-      SvgUtil.setClass(chevron, 'pressed', true);
-      setTimeout(() => SvgUtil.setClass(chevron, 'pressed', false), 200);
-      if (config.highlight_tap)
-        SvgUtil.setClass(this._controls[index], 'control-visible', true);
-    }
-    else {
-      if (index === 2) {
-        // clicked top
-        chevron = this._root.querySelectorAll('path.dial__chevron--target')[1];
-        this._target = this._target + config.step;
-        if (this._target > this.max_value) this._target = this.max_value;
-        if (config.highlight_tap) {
-          SvgUtil.setClass(this._controls[0], 'control-visible', true);
-          SvgUtil.setClass(this._controls[1], 'control-visible', true);
+    if (this.in_control) {
+      if (this.dual) {
+        switch (index) {
+          case 0:
+            // clicked top left 
+            chevron = this._root.querySelectorAll('path.dial__chevron--low')[1];
+            this._low = this._low + config.step;
+            if ((this._low + config.idle_zone) >= this._high) this._low = this._high - config.idle_zone;
+            break;
+          case 1:
+            // clicked top right
+            chevron = this._root.querySelectorAll('path.dial__chevron--high')[1];
+            this._high = this._high + config.step;
+            if (this._high > this.max_value) this._high = this.max_value;
+            break;
+          case 2:
+            // clicked bottom right
+            chevron = this._root.querySelectorAll('path.dial__chevron--high')[0];
+            this._high = this._high - config.step;
+            if ((this._high - config.idle_zone) <= this._low) this._high = this._low + config.idle_zone;
+            break;
+          case 3:
+            // clicked bottom left
+            chevron = this._root.querySelectorAll('path.dial__chevron--low')[0];
+            this._low = this._low - config.step;
+            if (this._low < this.min_value) this._low = this.min_value;
+            break;
         }
-      } else if(index === 3) {
-        // clicked bottom
-        chevron = this._root.querySelectorAll('path.dial__chevron--target')[0];
-        this._target = this._target - config.step;
-        if (this._target < this.min_value) this._target = this.min_value;
-        if (config.highlight_tap) {
-          SvgUtil.setClass(this._controls[2], 'control-visible', true);
-          SvgUtil.setClass(this._controls[3], 'control-visible', true);
-        }
+        SvgUtil.setClass(chevron, 'pressed', true);
+        setTimeout(() => SvgUtil.setClass(chevron, 'pressed', false), 200);
+        if (config.highlight_tap)
+          SvgUtil.setClass(this._controls[index], 'control-visible', true);
       }
-      SvgUtil.setClass(chevron, 'pressed', true);
-      setTimeout(() => SvgUtil.setClass(chevron, 'pressed', false), 200);
+      else {
+        if (index < 2) {
+          // clicked top
+          chevron = this._root.querySelectorAll('path.dial__chevron--target')[1];
+          this._target = this._target + config.step;
+          if (this._target > this.max_value) this._target = this.max_value;
+          if (config.highlight_tap) {
+            SvgUtil.setClass(this._controls[0], 'control-visible', true);
+            SvgUtil.setClass(this._controls[1], 'control-visible', true);
+          }
+        } else {
+          // clicked bottom
+          chevron = this._root.querySelectorAll('path.dial__chevron--target')[0];
+          this._target = this._target - config.step;
+          if (this._target < this.min_value) this._target = this.min_value;
+          if (config.highlight_tap) {
+            SvgUtil.setClass(this._controls[2], 'control-visible', true);
+            SvgUtil.setClass(this._controls[3], 'control-visible', true);
+          }
+        }
+        SvgUtil.setClass(chevron, 'pressed', true);
+        setTimeout(() => SvgUtil.setClass(chevron, 'pressed', false), 200);
+      }
+      if (config.highlight_tap) {
+        setTimeout(() => {
+          SvgUtil.setClass(this._controls[0], 'control-visible', false);
+          SvgUtil.setClass(this._controls[1], 'control-visible', false);
+          SvgUtil.setClass(this._controls[2], 'control-visible', false);
+          SvgUtil.setClass(this._controls[3], 'control-visible', false);
+        }, 200);
+      }
+    } else {
+      this._enableControls();
     }
-    if (config.highlight_tap) {
-      setTimeout(() => {
-        SvgUtil.setClass(this._controls[0], 'control-visible', false);
-        SvgUtil.setClass(this._controls[1], 'control-visible', false);
-        SvgUtil.setClass(this._controls[2], 'control-visible', false);
-        SvgUtil.setClass(this._controls[3], 'control-visible', false);
-      }, 200);
-    }
-    this._updateText('ambient', this._target);
-    this._enableControls();
   }
 
   _updateEdit(show_edit) {
@@ -336,8 +338,8 @@ export default class ThermostatUI {
 
   _enableControls() {
     const config = this._config;
-    //this._in_control = true;
-    //this._updateClass('in_control', this.in_control);
+    this._in_control = true;
+    this._updateClass('in_control', this.in_control);
     if (this._timeoutHandler) clearTimeout(this._timeoutHandler);
     this._updateEdit(true);
     //this._updateClass('has-thermo', true);
@@ -351,8 +353,8 @@ export default class ThermostatUI {
       this._updateText('ambient', this._target);
       this._updateEdit(false);
       //this._updateClass('has-thermo', false);
-      //this._in_control = false;
-      //this._updateClass('in_control', this.in_control);
+      this._in_control = false;
+      this._updateClass('in_control', this.in_control);
       config.control();
     }, config.pending * 1000);
   }
@@ -373,9 +375,9 @@ export default class ThermostatUI {
       }
     }
     
-    // if (this.in_control && id == 'target' && this.dual) {
-    //   lblTarget[0].textContent = '·';
-    // }
+    if (this.in_control && id == 'target' && this.dual) {
+      lblTarget[0].textContent = '·';
+    }
 
     if(id =='prefixText'){
       lblTarget[0].textContent = value;
@@ -421,7 +423,7 @@ export default class ThermostatUI {
     }
   }
 
-  _updateTicks(from, to, large_ticks, hvac_state) {
+  _updateTicks(from, to, large_ticks, ambient) {
     const config = this._config;
 
     const tickPoints = [
@@ -451,6 +453,7 @@ export default class ThermostatUI {
       const matchingTick = large_ticks.find(i => index === i.value);
 
       if(matchingTick) {
+        debugger;
           isPoint = true;
           isTarget = matchingTick.isTarget;
       }
@@ -460,12 +463,17 @@ export default class ThermostatUI {
       const theta = config.tick_degrees / config.num_ticks;
       let points = tickPoints;
       if(isPoint) {
-          if(isTarget || from === to) {
+        debugger;
+          if(isTarget || from === to || (this.dual && (from == ambient || to === ambient))) {
             points = tickPointsTarget
           }
           else {
             points = tickPointsCurrent
           }
+      }
+
+      if(ambient === index) {
+        tickClass += ' ambient';
       }
 
       SvgUtil.attributes(tick, {
@@ -529,8 +537,6 @@ export default class ThermostatUI {
     this._modes_dialog.className = "dialog modes hide";
   }
   _setMode(e, mode,hass){
-    console.log(mode);
-    let config = this._config;
     if (this._timeoutHandlerMode) clearTimeout(this._timeoutHandlerMode);
     hass.callService('climate', 'set_hvac_mode', {
       entity_id: this._config.entity,
@@ -590,12 +596,12 @@ export default class ThermostatUI {
     return tick_element;
   }
   
-  _buildChevrons(radius, rotation, id, scale, offset, radiusOffset) {
+  _buildChevrons(radius, rotation, id, scale, offset) {
     const config = this._config;
     const translation = rotation > 0 ? -1 : 1;
     const width = config.chevron_size;
     const chevron_def = ["M", 0, 0, "L", width / 2, width * 0.3, "L", width, 0].map((x) => isNaN(x) ? x : x * scale).join(' ');
-    const translate = [radius - width / 2 * scale * translation + offset, radius + radiusOffset * scale * 1.1 * translation];
+    const translate = [radius - width / 2 * scale * translation + offset, radius + 70 * scale * 1.1 * translation];
     const chevron = SvgUtil.createSVGElement('path', {
       class: `dial__chevron dial__chevron--${id}`,
       d: chevron_def,
