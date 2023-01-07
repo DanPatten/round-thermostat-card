@@ -310,6 +310,7 @@ export function cssData(user) {
 
   .dial__lbl.dial__lbl--ring.ambient {
     fill: var(--ambient-tick);
+    font-weight: 800;
   }
 
   #prefixText {
